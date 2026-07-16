@@ -1,0 +1,92 @@
+version: 2
+
+project_name: bolna
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - id: bolna
+    main: ./cmd/bolna
+    binary: bolna
+    env:
+      - CGO_ENABLED=0
+    goos: [darwin, linux, windows]
+    goarch: [amd64, arm64]
+    ldflags:
+      - -s -w
+      - -X main.version={{ .Version }}
+      - -X main.commit={{ .Commit }}
+      - -X main.date={{ .Date }}
+
+# Merges darwin/amd64 + darwin/arm64 into a single universal binary so
+# `brew install`/direct download users don't have to pick an architecture.
+universal_binaries:
+  - ids: [bolna]
+    replace: true
+
+# Cross-platform notarization via quill (github.com/anchore/quill), which
+# GoReleaser vendors as a Go library — this runs on any CI runner (no macOS
+# host required) and is available in OSS GoReleaser, unlike the
+# `notarize.macos_native` pipe which needs GoReleaser Pro + a real Mac.
+#
+# Only activates when MACOS_SIGN_P12 is set, so `goreleaser release
+# --snapshot` works with zero signing config for local testing. See the
+# "macOS notarization" section in README.md for what each secret is and how
+# to obtain it.
+notarize:
+  macos:
+    - enabled: '{{ isEnvSet "MACOS_SIGN_P12" }}'
+      ids: [bolna]
+      sign:
+        certificate: "{{ .Env.MACOS_SIGN_P12 }}"
+        password: "{{ .Env.MACOS_SIGN_PASSWORD }}"
+      notarize:
+        issuer_id: "{{ .Env.MACOS_NOTARY_ISSUER_ID }}"
+        key_id: "{{ .Env.MACOS_NOTARY_KEY_ID }}"
+        key: "{{ .Env.MACOS_NOTARY_KEY }}"
+        wait: true
+        timeout: 20m
+
+archives:
+  - id: bolna
+    formats: [tar.gz]
+    format_overrides:
+      - goos: windows
+        formats: [zip]
+    name_template: >-
+      {{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}
+    files:
+      - LICENSE*
+      - README.md
+
+checksum:
+  name_template: "checksums.txt"
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+      - "^chore:"
+
+release:
+  draft: true
+  prerelease: auto
+
+# Uncomment once a `bolna-ai/homebrew-tap` repo exists and a GitHub token
+# with write access to it is available as HOMEBREW_TAP_GITHUB_TOKEN.
+#
+# brews:
+#   - repository:
+#       owner: bolna-ai
+#       name: homebrew-tap
+#       token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
+#     homepage: "https://github.com/bolna-ai/bolna-cli"
+#     description: "The Bolna Voice AI CLI and TUI"
+#     install: |
+#       bin.install "bolna"
+#     test: |
+#       system "#{bin}/bolna", "version"
