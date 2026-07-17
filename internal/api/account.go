@@ -21,10 +21,16 @@ func (u UserInfo) Email() string { return u.str("email") }
 func (u UserInfo) Name() string  { return u.str("name") }
 
 // Balance returns the wallet balance if present under any of the field
-// names Bolna has used across API versions ("wallet" on the live /user/me
-// response, plus older/alternate names kept as a fallback).
+// names Bolna has used across API versions. "wallet" (the live /user/me
+// response) is confirmed to report the balance scaled by 100 — e.g. a raw
+// value of 9930.01 for an actual balance of $99.30 — so it's divided back
+// down here; the older/alternate fallback field names are unverified
+// guesses and are returned as-is.
 func (u UserInfo) Balance() (float64, bool) {
-	for _, key := range []string{"wallet", "wallet_balance", "balance", "account_balance"} {
+	if v, ok := u.num("wallet"); ok {
+		return v / 100, true
+	}
+	for _, key := range []string{"wallet_balance", "balance", "account_balance"} {
 		if v, ok := u.num(key); ok {
 			return v, true
 		}

@@ -27,6 +27,7 @@ const (
 	scrNumbers
 	scrBatches
 	scrAccount
+	scrCallStart
 )
 
 // Loaded-data messages. Each API call runs in its own tea.Cmd (real HTTP
@@ -137,14 +138,19 @@ type dashboard struct {
 	paletteOpen bool
 	palette     list.Model
 
+	callStart *callStartModel
+
 	quitting bool
 }
 
 // RunDashboard launches the full-screen mission-control TUI: a splash
 // slide-in, then a sidebar-navigated view over agents, calls, numbers,
-// batches, and account — all read-only (writes go through the dedicated
-// `bolna agents create/update/delete` and `bolna call start` commands, which
-// have their own confirmation flows).
+// batches, and account. Browsing is read-only; the one write action
+// available in-dashboard is starting a call (`s` from an agent's detail
+// screen), which always shows the wallet balance and requires an explicit
+// confirmation before it spends money. Editing agents (create/update/delete)
+// goes through the dedicated `bolna agents` commands, which have their own
+// wizards and confirmation flows.
 func RunDashboard(client *api.Client, theme styles.Theme) error {
 	m := newDashboard(client, theme)
 	_, err := tea.NewProgram(m, tea.WithAltScreen()).Run()
@@ -229,9 +235,22 @@ func (m dashboard) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 
 	case spinner.TickMsg:
-		var cmd tea.Cmd
+		var cmd, cmd2 tea.Cmd
 		m.spinner, cmd = m.spinner.Update(msg)
-		return m, cmd
+		if m.callStart != nil {
+			// bubbles/spinner tags each TickMsg with the ID of the spinner
+			// that requested it and no-ops for any other, so it's safe to
+			// route the same message to both the dashboard's own spinner
+			// (list-loading states) and callStart's (dialing state).
+			updated, c, action := m.callStart.Update(msg)
+			m.callStart = &updated
+			cmd2 = c
+			if action == callExit {
+				m.callStart = nil
+				m = m.pop()
+			}
+		}
+		return m, tea.Batch(cmd, cmd2)
 
 	case agentsLoadedMsg:
 		m.loading = false
@@ -323,6 +342,19 @@ func (m dashboard) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		return m, nil
 
+	case callStartedMsg, waveTickMsg, callPollTickMsg, callPolledMsg:
+		if m.callStart == nil {
+			return m, nil
+		}
+		updated, cmd, action := m.callStart.Update(msg)
+		m.callStart = &updated
+		if action == callExit {
+			m.callStart = nil
+			m = m.pop()
+			return m, nil
+		}
+		return m, cmd
+
 	case tea.KeyMsg:
 		return m.handleKey(msg)
 	}
@@ -349,6 +381,24 @@ func (m dashboard) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		}
 		var cmd tea.Cmd
 		m.palette, cmd = m.palette.Update(msg)
+		return m, cmd
+	}
+
+	// Intercept before the global keymap: a phone number is mostly digits,
+	// and "1"/"2"/"3" etc. must reach the text input rather than trigger
+	// section navigation. ctrl+c still force-quits as a safety escape hatch.
+	if m.screen == scrCallStart && m.callStart != nil {
+		if msg.String() == "ctrl+c" {
+			m.quitting = true
+			return m, tea.Quit
+		}
+		updated, cmd, action := m.callStart.Update(msg)
+		m.callStart = &updated
+		if action == callExit {
+			m.callStart = nil
+			m = m.pop()
+			return m, nil
+		}
 		return m, cmd
 	}
 
@@ -405,6 +455,12 @@ func (m dashboard) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			m.loading = true
 			m = m.push(scrBatches)
 			return m, tea.Batch(m.spinner.Tick, fetchBatches(m.client, m.selectedAgentID))
+		case key.Matches(msg, keys.StartCall):
+			balance, hasBal := m.account.Balance()
+			started := newCallStartModel(m.theme, m.client, m.selectedAgentID, m.selectedAgent.Name(), balance, hasBal)
+			m.callStart = &started
+			m = m.push(scrCallStart)
+			return m, m.callStart.Init()
 		}
 		var cmd tea.Cmd
 		m.detailView, cmd = m.detailView.Update(msg)
@@ -571,6 +627,8 @@ func breadcrumb(s screen) string {
 		return "· agents · batches"
 	case scrAccount:
 		return "· account"
+	case scrCallStart:
+		return "· agents · start call"
 	}
 	return ""
 }
@@ -590,7 +648,7 @@ func screenHint(s screen) string {
 	case scrAgents:
 		return "enter: view agent"
 	case scrAgentDetail:
-		return "c: calls  •  b: batches"
+		return "c: calls  •  b: batches  •  s: start call"
 	case scrCalls:
 		return "enter: transcript"
 	default:
@@ -617,6 +675,11 @@ func (m dashboard) renderScreen() string {
 		return m.batchTable.View()
 	case scrAccount:
 		return m.theme.Card.Render(renderAccountCard(m.theme, m.account))
+	case scrCallStart:
+		if m.callStart == nil {
+			return ""
+		}
+		return m.callStart.View(m.width - 2)
 	}
 	return ""
 }

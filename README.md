@@ -131,16 +131,21 @@ for `-o json`), `--no-color`, `--profile <name>`, and `-v/--verbose`. Every
 | `:` | Open the command palette (fuzzy jump to any agent or section) |
 | `1` / `2` / `3` | Jump to Agents / Numbers / Account |
 | `enter` | Drill into the selected row |
-| `c` / `b` | From an agent's detail view: calls / batches |
+| `c` / `b` / `s` | From an agent's detail view: calls / batches / start a call |
 | `esc` | Back one screen |
 | `r` | Refresh the current screen |
 | `t` | Cycle color theme |
 | `q` / `ctrl+c` | Quit |
 
-The dashboard is intentionally **read-only** — writes (create/update/delete
-an agent, start a call) go through the dedicated commands above, which have
-their own confirmation flows. This keeps a live "mission control" view from
-ever being one stray keystroke away from a destructive action.
+Browsing is read-only. Editing agents (create/update/delete) goes through the
+dedicated `bolna agents` commands above, which have their own wizards and
+confirmation flows — that stays out of the dashboard so a live "mission
+control" view is never one stray keystroke away from a destructive edit.
+Starting a call is the one write action built into the dashboard itself
+(`s` from an agent's detail screen): it shows the wallet balance and always
+requires an explicit `y`/`n` confirmation before it dials, then polls the
+live status with an animated waveform until the call ends and shows the
+transcript.
 
 ## Development
 
