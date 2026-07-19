@@ -1,4 +1,4 @@
-module github.com/bolna-ai/bolna-cli
+module github.com/bolna-ai/cli
 
 go 1.26.5
 

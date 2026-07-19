@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/bolna-ai/bolna-cli/internal/api"
-	"github.com/bolna-ai/bolna-cli/internal/auth"
-	"github.com/bolna-ai/bolna-cli/internal/config"
+	"github.com/bolna-ai/cli/internal/api"
+	"github.com/bolna-ai/cli/internal/auth"
+	"github.com/bolna-ai/cli/internal/config"
 	"github.com/charmbracelet/huh"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/spf13/cobra"

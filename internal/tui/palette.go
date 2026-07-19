@@ -1,8 +1,8 @@
 package tui
 
 import (
-	"github.com/bolna-ai/bolna-cli/internal/api"
-	"github.com/bolna-ai/bolna-cli/internal/tui/styles"
+	"github.com/bolna-ai/cli/internal/api"
+	"github.com/bolna-ai/cli/internal/tui/styles"
 	"github.com/charmbracelet/bubbles/list"
 )
 

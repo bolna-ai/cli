@@ -6,7 +6,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/bolna-ai/bolna-cli/internal/tui/styles"
+	"github.com/bolna-ai/cli/internal/tui/styles"
 	"github.com/charmbracelet/lipgloss"
 )
 

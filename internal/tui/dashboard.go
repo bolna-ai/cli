@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/bolna-ai/bolna-cli/internal/api"
-	"github.com/bolna-ai/bolna-cli/internal/config"
-	"github.com/bolna-ai/bolna-cli/internal/tui/styles"
+	"github.com/bolna-ai/cli/internal/api"
+	"github.com/bolna-ai/cli/internal/config"
+	"github.com/bolna-ai/cli/internal/tui/styles"
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/bubbles/spinner"

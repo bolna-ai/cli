@@ -84,7 +84,7 @@ release:
 #       owner: bolna-ai
 #       name: homebrew-tap
 #       token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
-#     homepage: "https://github.com/bolna-ai/bolna-cli"
+#     homepage: "https://github.com/bolna-ai/cli"
 #     description: "The Bolna Voice AI CLI and TUI"
 #     install: |
 #       bin.install "bolna"

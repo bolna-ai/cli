@@ -5,10 +5,10 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/bolna-ai/bolna-cli/internal/api"
-	"github.com/bolna-ai/bolna-cli/internal/auth"
-	"github.com/bolna-ai/bolna-cli/internal/config"
-	"github.com/bolna-ai/bolna-cli/internal/tui"
+	"github.com/bolna-ai/cli/internal/api"
+	"github.com/bolna-ai/cli/internal/auth"
+	"github.com/bolna-ai/cli/internal/config"
+	"github.com/bolna-ai/cli/internal/tui"
 	"github.com/spf13/cobra"
 )
 

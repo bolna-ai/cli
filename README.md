@@ -53,13 +53,13 @@ Lip Gloss, Huh, Glamour, and Harmonica.
 ## Install
 
 ```sh
-go install github.com/bolna-ai/bolna-cli/cmd/bolna@latest
+go install github.com/bolna-ai/cli/cmd/bolna@latest
 ```
 
 Or build from source:
 
 ```sh
-git clone https://github.com/bolna-ai/bolna-cli
+git clone https://github.com/bolna-ai/cli
 cd bolna-cli
 go build -o bolna ./cmd/bolna
 ```

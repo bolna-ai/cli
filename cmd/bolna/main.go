@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/bolna-ai/bolna-cli/internal/cli"
+	"github.com/bolna-ai/cli/internal/cli"
 )
 
 // version/commit/date are injected via -ldflags at build time by goreleaser;

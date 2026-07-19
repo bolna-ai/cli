@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/bolna-ai/bolna-cli/internal/tui/styles"
+	"github.com/bolna-ai/cli/internal/tui/styles"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/harmonica"
 	"github.com/charmbracelet/lipgloss"

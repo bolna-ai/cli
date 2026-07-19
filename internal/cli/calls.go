@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/bolna-ai/bolna-cli/internal/api"
+	"github.com/bolna-ai/cli/internal/api"
 	"github.com/charmbracelet/glamour"
 	"github.com/charmbracelet/huh"
 	"github.com/spf13/cobra"

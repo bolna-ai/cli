@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/bolna-ai/bolna-cli/internal/api"
-	"github.com/bolna-ai/bolna-cli/internal/auth"
-	"github.com/bolna-ai/bolna-cli/internal/config"
-	"github.com/bolna-ai/bolna-cli/internal/tui/styles"
+	"github.com/bolna-ai/cli/internal/api"
+	"github.com/bolna-ai/cli/internal/auth"
+	"github.com/bolna-ai/cli/internal/config"
+	"github.com/bolna-ai/cli/internal/tui/styles"
 	"github.com/charmbracelet/huh"
 	"github.com/mattn/go-isatty"
 )

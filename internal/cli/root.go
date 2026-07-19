@@ -3,7 +3,7 @@ package cli
 import (
 	"fmt"
 
-	"github.com/bolna-ai/bolna-cli/internal/tui"
+	"github.com/bolna-ai/cli/internal/tui"
 	"github.com/spf13/cobra"
 )
 
