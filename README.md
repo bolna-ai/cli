@@ -1,5 +1,8 @@
 # bolna
 
+**🚧 Beta** — actively developed, interfaces and commands may still change.
+Bug reports and feedback welcome.
+
 The Bolna Voice AI CLI — and a full-screen terminal dashboard — for managing
 agents, calls, phone numbers, and batches without leaving your terminal.
 
@@ -12,7 +15,7 @@ arguments in a terminal and you get a "mission control" dashboard instead of
 a wall of JSON. Pipe it, script it, or run it in CI, and it behaves like a
 normal, quiet, JSON-friendly CLI.
 
-Built entirely on the [Charm](https://charm.land) stack — Bubble Tea, Bubbles,
+Built entirely on the [Charm](https://charm.land) stack - Bubble Tea, Bubbles,
 Lip Gloss, Huh, Glamour, and Harmonica.
 
 ## Features
@@ -23,6 +26,10 @@ Lip Gloss, Huh, Glamour, and Harmonica.
   account, with a spring-physics splash animation on startup (Harmonica).
 - **Command palette** — press `:` anywhere in the dashboard for a fuzzy
   jump-to-agent/section launcher (Bubbles `list` with built-in filtering).
+- **Start a call from the dashboard** — press `s` from an agent's detail
+  screen: phone number prompt, a confirmation showing your real wallet
+  balance, then a live animated waveform that polls the call until it ends
+  and shows the transcript.
 - **Frictionless first run** — no key configured yet? Any command (including
   bare `bolna`) offers to log you in right there instead of dead-ending on an
   error, then continues straight into what you asked for.
@@ -40,34 +47,41 @@ Lip Gloss, Huh, Glamour, and Harmonica.
 - **Theming** — three built-in Lip Gloss palettes, all shades of blue by
   design (Bolna's own brand blue — the default — plus Tokyo Night and Nord;
   no violet/purple options), all `AdaptiveColor`-based so they look right in
-  light or dark terminals. Cycle
-  with `t` in the dashboard.
+  light or dark terminals. Cycle with `t` in the dashboard.
 - **`--png` snapshot export** on `agents view`, via the
   [Freeze](https://github.com/charmbracelet/freeze) CLI, for dropping a
   styled agent card into Slack or docs.
 - **OS keychain-backed auth** — API keys never touch a plaintext config file.
 - **Lightweight** — a single static Go binary (~16MB stripped), no runtime,
-  no separate interpreter. `-o csv`/`-o json` use only the standard library —
-  no extra dependency was added to support them.
+  no separate interpreter.
 
 ## Install
+
+**Via `go install`** (needs [Go](https://go.dev) installed):
 
 ```sh
 go install github.com/bolna-ai/cli/cmd/bolna@latest
 ```
 
-Or build from source:
+**Build from source:**
 
 ```sh
 git clone https://github.com/bolna-ai/cli
-cd bolna-cli
+cd cli
 go build -o bolna ./cmd/bolna
 ```
 
-A Homebrew tap and signed/notarized macOS binaries ship via
-[GoReleaser](https://goreleaser.com) — see [Releasing](#releasing) below.
+Then move the `bolna` binary onto your `PATH` (e.g. `mv bolna /usr/local/bin/`).
 
-## Quickstart
+If macOS warns `"bolna" cannot be opened because the developer cannot be
+verified` the first time you run a binary you built or downloaded, either
+right-click the file → **Open** → confirm once, or run:
+
+```sh
+xattr -d com.apple.quarantine bolna
+```
+
+## Usage
 
 The fastest path is just:
 
@@ -77,7 +91,8 @@ bolna
 
 First run, no key configured yet? It'll offer to log you in right there
 (prompts for your API key, validates it, stores it in the OS keychain), then
-drops you straight into the dashboard — no separate setup step required.
+drops you straight into the full-screen dashboard — no separate setup step
+required.
 
 Or, explicitly:
 
@@ -95,7 +110,7 @@ BOLNA_API_KEY=sk-... bolna agents list -o json
 BOLNA_API_KEY=sk-... bolna agents list -q | xargs -I{} bolna agents view {}
 ```
 
-## Commands
+### Commands
 
 Run `bolna help` (or `bolna --help`) for the full grouped list with every
 command's one-line description, or `bolna help <command>` / `bolna
@@ -124,7 +139,7 @@ Every command supports `-o/--output table|json|csv` (`--json` is a shorthand
 for `-o json`), `--no-color`, `--profile <name>`, and `-v/--verbose`. Every
 `list` command additionally supports `-q/--quiet` for bare-ID output.
 
-## Dashboard keybindings
+### Dashboard keybindings
 
 | Key | Action |
 |---|---|
@@ -141,78 +156,4 @@ Browsing is read-only. Editing agents (create/update/delete) goes through the
 dedicated `bolna agents` commands above, which have their own wizards and
 confirmation flows — that stays out of the dashboard so a live "mission
 control" view is never one stray keystroke away from a destructive edit.
-Starting a call is the one write action built into the dashboard itself
-(`s` from an agent's detail screen): it shows the wallet balance and always
-requires an explicit `y`/`n` confirmation before it dials, then polls the
-live status with an animated waveform until the call ends and shows the
-transcript.
-
-## Development
-
-```sh
-go build ./...
-go vet ./...
-go test ./...
-gofmt -l .          # should print nothing
-```
-
-Project layout:
-
-```
-cmd/bolna/            entrypoint
-internal/api/          Bolna REST API client (one file per resource group)
-internal/auth/         OS keychain-backed credential storage
-internal/config/       small on-disk settings file (theme, profiles)
-internal/cli/          Cobra command tree
-internal/tui/          Bubble Tea dashboard, doctor, splash, command palette
-internal/tui/styles/   shared Lip Gloss theming
-```
-
-## Releasing
-
-Tag pushes (`vX.Y.Z`) trigger `.github/workflows/release.yml`, which runs
-[GoReleaser](https://goreleaser.com) (`.goreleaser.yaml`) to build signed,
-notarized macOS binaries (universal amd64+arm64) plus Linux and Windows
-builds, and cut a (draft) GitHub release.
-
-### macOS notarization
-
-Signing/notarization uses GoReleaser's `notarize.macos` pipe, which wraps
-[quill](https://github.com/anchore/quill) — it runs on any CI runner (no
-macOS host required) and works with free/OSS GoReleaser, unlike the Pro-only
-native `codesign`/`notarytool` pipe.
-
-You'll need, before the first real (non-snapshot) release:
-
-1. A **paid Apple Developer Program membership**.
-2. A **Developer ID Application** certificate + private key, exported as a
-   `.p12` and base64-encoded → GitHub secret `MACOS_SIGN_P12`, plus its
-   export password → `MACOS_SIGN_PASSWORD`.
-3. An **App Store Connect API key** (Keys → Users and Access in App Store
-   Connect): the Issuer ID → `MACOS_NOTARY_ISSUER_ID`, the Key ID →
-   `MACOS_NOTARY_KEY_ID`, and the downloaded `.p8` file, base64-encoded →
-   `MACOS_NOTARY_KEY`.
-
-Until those secrets exist, `goreleaser release --clean` still runs and
-produces unsigned binaries — the `enabled` field in `.goreleaser.yaml`'s
-`notarize.macos` block is gated on `MACOS_SIGN_P12` being set. Test the whole
-pipeline locally with:
-
-```sh
-goreleaser release --snapshot --clean
-```
-
-### Homebrew tap
-
-`.goreleaser.yaml` has a commented-out `brews:` block. Uncomment it once a
-`bolna-ai/homebrew-tap` repo exists, and add a `HOMEBREW_TAP_GITHUB_TOKEN`
-secret (a GitHub token with write access to that repo).
-
-## Demo GIF
-
-`demo/demo.tape` is a [VHS](https://github.com/charmbracelet/vhs) script.
-Regenerate `demo/demo.gif` with:
-
-```sh
-vhs demo/demo.tape
-```
+Starting a call is the one write action built into the dashboard itself.

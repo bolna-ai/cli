@@ -14,7 +14,8 @@ func Execute(build BuildInfo) error {
 	root := &cobra.Command{
 		Use:   "bolna",
 		Short: "The Bolna Voice AI CLI — manage agents, calls, numbers, and batches",
-		Long: "bolna is a CLI and full-screen TUI for Bolna Voice AI.\n\n" +
+		Long: "bolna is a CLI and full-screen TUI for Bolna Voice AI. (beta — interfaces\n" +
+			"and commands may still change; feedback welcome.)\n\n" +
 			"Run `bolna` with no arguments in a terminal to open the interactive\n" +
 			"dashboard. Every dashboard view has an equivalent scriptable command\n" +
 			"below — run `bolna <command> --help` (or `bolna help <command>`) for\n" +
