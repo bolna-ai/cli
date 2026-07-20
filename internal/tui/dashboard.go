@@ -363,6 +363,10 @@ func (m dashboard) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m dashboard) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	if m.showingSplash {
+		if key.Matches(msg, keys.Quit) {
+			m.quitting = true
+			return m, tea.Quit
+		}
 		m.showingSplash = false
 		return m, nil
 	}

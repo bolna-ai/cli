@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(rm -f \"/private/tmp/claude-502/-Users-tanishasharma-Desktop-bolna-cli/26df4f82-dd0e-430e-9b1b-614c62cf6538/scratchpad/splash_\"*.png *)",
+      "Bash(cat)",
+      "Bash(python3 /tmp/pty_quit_splash.py)",
+      "Bash(python3 /tmp/pty_diag2.py)",
+      "Bash(python3 /tmp/pty_quit_splash2.py)",
+      "Bash(python3 -c ' *)",
+      "Bash(rm -f /tmp/pty_quit_splash*.py /tmp/pty_diag2.py /tmp/quit_splash_test.bin)",
+      "Bash(rm -f \"/private/tmp/claude-502/-Users-tanishasharma-Desktop-bolna-cli/26df4f82-dd0e-430e-9b1b-614c62cf6538/scratchpad/open_\"*.png *)"
+    ],
+    "additionalDirectories": [
+      "/private/tmp/claude-502/-Users-tanishasharma-Desktop-bolna-cli/26df4f82-dd0e-430e-9b1b-614c62cf6538/scratchpad",
+      "/tmp"
+    ]
+  }
+}
