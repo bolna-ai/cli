@@ -155,6 +155,70 @@ func newAgentsCreateCmd(a *appCtx) *cobra.Command {
 	return cmd
 }
 
+// buildAgentUpdate builds the PATCH body from the agent's CURRENT full config
+// plus the requested changes. It starts from a copy of the existing nested
+// agent_config / agent_prompts so the payload carries the complete object and
+// only the intended fields differ — safe whether the API replaces or
+// shallow-merges those top-level keys. A bare partial payload (the old
+// behavior) would wipe everything else under a rename: tasks, voice, LLM, or a
+// sibling task_2 prompt.
+//
+// ponytail: correctness relies on GET returning nested agent_config/agent_prompts
+// (documented at api/agents.go:34). If GET omits agent_config, the base is empty
+// and this degrades to the old partial payload for config-only edits — confirm
+// the GET/PATCH shapes with one curl to close that gap. agent_prompts is
+// confirmed nested (SystemPrompt reads it), so the task_2 fix holds regardless.
+func buildAgentUpdate(current api.Agent, name, welcome, prompt, webhook string) (api.UpdateAgentInput, map[string]string) {
+	changed := map[string]string{}
+
+	config := copyMap(current.AgentConfig())
+	configTouched := false
+	if name != "" && name != current.Name() {
+		config["agent_name"] = name
+		changed["agent_name"] = fmt.Sprintf("%q → %q", current.Name(), name)
+		configTouched = true
+	}
+	if welcome != "" && welcome != current.WelcomeMessage() {
+		config["agent_welcome_message"] = welcome
+		changed["agent_welcome_message"] = fmt.Sprintf("%q → %q", current.WelcomeMessage(), welcome)
+		configTouched = true
+	}
+	if webhook != "" {
+		config["webhook_url"] = webhook
+		changed["webhook_url"] = webhook
+		configTouched = true
+	}
+
+	var input api.UpdateAgentInput
+	if configTouched {
+		input.AgentConfig = config
+	}
+	if prompt != "" && prompt != current.SystemPrompt() {
+		prompts := copyMap(current.AgentPrompts())
+		task1 := copyMap(mapOf(prompts["task_1"]))
+		task1["system_prompt"] = prompt
+		prompts["task_1"] = task1
+		input.AgentPrompts = prompts
+		changed["system_prompt"] = "(updated — see diff above)"
+	}
+	return input, changed
+}
+
+// copyMap returns a shallow copy of m (nil → empty map). Shallow is enough here
+// because callers overwrite whole top-level entries, never mutate nested values.
+func copyMap(m map[string]any) map[string]any {
+	out := make(map[string]any, len(m)+1)
+	for k, v := range m {
+		out[k] = v
+	}
+	return out
+}
+
+func mapOf(v any) map[string]any {
+	m, _ := v.(map[string]any)
+	return m
+}
+
 func newAgentsUpdateCmd(a *appCtx) *cobra.Command {
 	var name, welcome, prompt, webhook string
 	var yes bool
@@ -184,24 +248,7 @@ func newAgentsUpdateCmd(a *appCtx) *cobra.Command {
 				name, welcome, prompt, webhook = n, w, p, wh
 			}
 
-			input := api.UpdateAgentInput{AgentConfig: map[string]any{}}
-			changed := map[string]string{}
-			if name != "" && name != current.Name() {
-				input.AgentConfig["agent_name"] = name
-				changed["agent_name"] = fmt.Sprintf("%q → %q", current.Name(), name)
-			}
-			if welcome != "" && welcome != current.WelcomeMessage() {
-				input.AgentConfig["agent_welcome_message"] = welcome
-				changed["agent_welcome_message"] = fmt.Sprintf("%q → %q", current.WelcomeMessage(), welcome)
-			}
-			if webhook != "" {
-				input.AgentConfig["webhook_url"] = webhook
-				changed["webhook_url"] = webhook
-			}
-			if prompt != "" && prompt != current.SystemPrompt() {
-				input.AgentPrompts = map[string]any{"task_1": map[string]any{"system_prompt": prompt}}
-				changed["system_prompt"] = "(updated — see diff above)"
-			}
+			input, changed := buildAgentUpdate(current, name, welcome, prompt, webhook)
 
 			theme := a.Theme()
 			if len(changed) == 0 {
@@ -227,9 +274,6 @@ func newAgentsUpdateCmd(a *appCtx) *cobra.Command {
 				}
 			}
 
-			if len(input.AgentConfig) == 0 {
-				input.AgentConfig = nil
-			}
 			result, err := client.UpdateAgent(agentID, input)
 			if err != nil {
 				return friendlyAPIErr(err, "Call `bolna agents list` to see valid agent IDs.")
