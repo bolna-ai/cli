@@ -57,6 +57,21 @@ func (a Agent) SystemPrompt() string {
 	return ""
 }
 
+// AgentConfig returns the agent's current nested agent_config object from a
+// GET /v2/agent/{id} response, or nil if absent. Used by `update` to patch
+// from the full existing config rather than a destructive partial.
+func (a Agent) AgentConfig() map[string]any {
+	m, _ := a["agent_config"].(map[string]any)
+	return m
+}
+
+// AgentPrompts returns the agent's current nested agent_prompts object (e.g.
+// {task_1: {...}, task_2: {...}}) from a GET response, or nil if absent.
+func (a Agent) AgentPrompts() map[string]any {
+	m, _ := a["agent_prompts"].(map[string]any)
+	return m
+}
+
 // CreateAgentInput mirrors POST /v2/agent's body. agent_config and
 // agent_prompts are passed through as generic maps deliberately: the full
 // v2 schema is large and provider-dependent, and re-modeling it field by
