@@ -78,7 +78,7 @@ func Execute(build BuildInfo) error {
 	root.AddCommand(grouped("agents", newAgentsCmd(a))...)
 	root.AddCommand(grouped("calls", newCallCmd(a), newCallsCmd(a))...)
 	root.AddCommand(grouped("resources", newNumbersCmd(a), newBatchesCmd(a))...)
-	root.AddCommand(grouped("utility", newDoctorCmd(a), newVersionCmd(a))...)
+	root.AddCommand(grouped("utility", newDoctorCmd(a), newVersionCmd(a), newDocsCmd(a))...)
 
 	return root.Execute()
 }

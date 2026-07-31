@@ -133,6 +133,8 @@ alongside the inherited global ones.
 | `bolna numbers list` | `list_phone_numbers` | |
 | `bolna batches list <agent-id>` | `list_batches` | |
 | `bolna doctor` | — | Config/keychain/network/API-key health checks |
+| `bolna docs search <query>` | — | Searches Bolna's public docs (no API key needed); `-q` prints bare paths |
+| `bolna docs fetch <page>` | — | Fetches and renders one docs page as Markdown |
 | `bolna completion [bash\|zsh\|fish\|powershell]` | — | Shell completions (via Cobra) |
 
 Every command supports `-o/--output table|json|csv` (`--json` is a shorthand
